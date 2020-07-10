@@ -1,0 +1,11 @@
+---
+# Default Login details 
+
+ansible_user: "cisco"
+ansible_ssh_pass: "cisco123"
+ansible_become_pass: "enable_pasword"
+
+network_backup_dir: "{{ playbook_dir }}/backups"
+network_backup_file: "{{ network_backup_dir }}/{{ inventory_hostname }}.cfg"
+network_backup_repository: 'git@github.com:repo/backups.git'
+local_git_repo_path:  "{{ playbook_dir }}"
