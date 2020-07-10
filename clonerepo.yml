@@ -1,0 +1,17 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  become: yes
+
+
+  tasks:
+  - name: Clone the backup repo
+    git:
+      repo: "{{ network_backup_repository }}"
+      dest: "{{ network_backup_dir }}"
+      accept_hostkey: yes
+      force: yes
+    register: clone_result
+    delegate_to: localhost
+    run_once: true

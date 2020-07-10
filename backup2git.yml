@@ -1,0 +1,61 @@
+---
+
+- name: Cisco ASA config backup to local git repo
+  hosts: asa_firewalls
+  gather_facts: false
+  connection: network_cli
+  become: yes
+
+  tasks:
+  - name: Full backup with preshared-keys
+    asa_command:
+      commands:
+      - more system:running-config | exclude Written
+    register: var_asafullBackup
+
+  - copy:
+      content: "{{ var_asafullBackup.stdout[0] }}"
+      dest: "{{ network_backup_dir }}/{{ inventory_hostname }}_running-config.cfg"
+
+- name: Cisco Switch config backup to local git repo
+  hosts: switches
+  gather_facts: false
+  connection: network_cli
+  become: yes
+
+  tasks:
+  - name: Full backup with preshared-keys
+    ios_command:
+      commands:
+      - sh running-config
+    register: var_iosfullBackup
+
+  - copy:
+      content: "{{ var_iosfullBackup.stdout[0] }}"
+      dest: "{{ network_backup_dir }}/{{ inventory_hostname }}_running-config.cfg"
+
+
+- name: COMMIT CONFIGURATION CHANGES TO GIT
+  hosts: localhost
+  gather_facts: false
+  become: yes
+  tags: git
+
+  tasks:
+  - name: remove commented lines with timestamps
+    # Cisco specific - avoid command timestamp from always marking config as changed
+    shell: |
+      sed -i -e '/^:\ Written\ by/d' {{ local_git_repo_path }}/*.cfg
+    args:
+      warn: no
+
+  - name: commit changes to git
+    shell: |
+      git add .
+      git commit -m "Config snapshot taken $(date +"%Y-%m-%d %H:%M:%S")"
+      git push
+      # Needed as git commit will fail if there are no changed files
+      exit 0
+    args:
+      chdir: "{{ local_git_repo_path }}"
+
