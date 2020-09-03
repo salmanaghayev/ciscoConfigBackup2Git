@@ -1,0 +1,32 @@
+---
+- name: Cisco Switch Timezone and NTP config
+  hosts: switches
+  gather_facts: false
+  connection: network_cli
+  become: yes
+
+  tasks:
+  - name: Timezome and Timestamps
+    ios_config:
+      lines:
+      - clock timezone EST -5 0
+      - clock summer-time EDT recurring
+      - service timestamps debug datetime msec localtime show-timezone
+      - service timestamps log datetime msec localtime show-timezone
+
+  - name: Set NTP Server1
+    ios_ntp:
+      server: "{{ ntp_server_1 }}"
+      logging: false
+      state: present
+
+  - name: Set NTP Server2
+    ios_ntp:
+      server: "{{ ntp_server_1 }}"
+      logging: false
+      state: present
+
+  - name: save running to startup when modified
+    ios_config:
+      save_when: modified
+
