@@ -27,7 +27,7 @@
   - name: Full backup with preshared-keys
     ios_command:
       commands:
-      - sh running-config
+      - sh running-config | ex ntp clock-period
     register: var_iosfullBackup
 
   - copy:
